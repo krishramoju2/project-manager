@@ -1,4 +1,16 @@
-body { background:#f4f6f8; font-family:Arial }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background:#f4f6f8;
+  font-family:Arial;
+  min-height: 100vh;
+}
+
 .card {
   background:white;
   padding:15px;
@@ -6,7 +18,13 @@ body { background:#f4f6f8; font-family:Arial }
   border-radius:8px;
   box-shadow:0 0 10px #ccc;
 }
-input,select { display:block; margin:5px 0; padding:6px }
+
+input,select {
+  display:block;
+  margin:5px 0;
+  padding:6px;
+}
+
 button {
   background:#4f46e5;
   color:white;
