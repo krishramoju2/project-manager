@@ -65,25 +65,25 @@ def register():
     u = request.json
     cur.execute(
         "INSERT INTO users VALUES (NULL,?,?,?,?)",
-        (u["name"],u["email"],u["password"],u["role"])
+        (u["name"], u["email"], u["password"], u["role"])
     )
     db.commit()
-    return {"msg":"Registered"}
+    return {"msg": "Registered"}
 
 @app.post("/login")
 def login():
     u = request.json
     cur.execute(
         "SELECT * FROM users WHERE email=? AND password=?",
-        (u["email"],u["password"])
+        (u["email"], u["password"])
     )
     row = cur.fetchone()
     if row:
         return jsonify({
-            "id":row[0],
-            "name":row[1],
-            "email":row[2],
-            "role":row[4]
+            "id": row[0],
+            "name": row[1],
+            "email": row[2],
+            "role": row[4]
         })
     return {}
 
@@ -95,39 +95,81 @@ def projects():
 
 @app.post("/projects")
 def add_project():
-    cur.execute("INSERT INTO projects VALUES (NULL,?,?)",
-                (request.json["name"],"ongoing"))
+    cur.execute(
+        "INSERT INTO projects VALUES (NULL,?,?)",
+        (request.json["name"], "ongoing")
+    )
     db.commit()
-    return {"msg":"Project added"}
+    return {"msg": "Project added"}
 
 @app.get("/tasks/<int:uid>/<role>")
 def tasks(uid, role):
     if role == "manager":
         cur.execute("SELECT * FROM tasks")
     else:
-        cur.execute("SELECT * FROM tasks WHERE assigned_user_id=?", (uid,))
+        cur.execute(
+            "SELECT * FROM tasks WHERE assigned_user_id=?",
+            (uid,)
+        )
     return jsonify(cur.fetchall())
 
 @app.post("/tasks")
 def add_task():
     t = request.json
     cur.execute("""
-      INSERT INTO tasks VALUES (NULL,?,?,?, ?,?)
-    """,(t["title"],t["description"],"pending",t["project_id"],t["user_id"]))
+        INSERT INTO tasks VALUES (NULL,?,?,?,?,?)
+    """, (
+        t["title"],
+        t["description"],
+        "pending",
+        t["project_id"],
+        t["user_id"]
+    ))
     db.commit()
-    return {"msg":"Task added"}
+    return {"msg": "Task added"}
 
 @app.post("/task/complete/<int:id>")
 def complete_task(id):
-    cur.execute("UPDATE tasks SET status='completed' WHERE id=?", (id,))
+    cur.execute(
+        "UPDATE tasks SET status='completed' WHERE id=?",
+        (id,)
+    )
     db.commit()
-    return {"msg":"Done"}
+    return {"msg": "Done"}
 
 @app.post("/project/complete/<int:id>")
 def complete_project(id):
-    cur.execute("UPDATE projects SET status='completed' WHERE id=?", (id,))
+    cur.execute(
+        "UPDATE projects SET status='completed' WHERE id=?",
+        (id,)
+    )
     db.commit()
-    return {"msg":"Done"}
+    return {"msg": "Done"}
 
+# ---- PRODUCTIVITY SCORE ----
+@app.get("/productivity/<int:user_id>")
+def productivity(user_id):
+    cur.execute(
+        "SELECT COUNT(*) FROM tasks WHERE assigned_user_id=?",
+        (user_id,)
+    )
+    total = cur.fetchone()[0]
+
+    cur.execute(
+        "SELECT COUNT(*) FROM tasks WHERE assigned_user_id=? AND status='completed'",
+        (user_id,)
+    )
+    completed = cur.fetchone()[0]
+
+    score = 0
+    if total > 0:
+        score = int((completed / total) * 100)
+
+    return jsonify({
+        "completed": completed,
+        "total": total,
+        "score": score
+    })
+
+# ---- RUN SERVER ----
 app.run(host="0.0.0.0", port=5000, debug=True)
-
