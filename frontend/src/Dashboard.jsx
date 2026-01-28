@@ -14,7 +14,6 @@ export default function Dashboard({ user }) {
       .then(r => r.json())
       .then(setTasks);
 
-    // ---- FETCH PRODUCTIVITY (ONLY FOR EMPLOYEE) ----
     if (user.role === "employee") {
       fetch(`http://localhost:5000/productivity/${user.id}`)
         .then(r => r.json())
@@ -36,6 +35,19 @@ export default function Dashboard({ user }) {
           <b>{productivity.score}%</b>
         </div>
       )}
+
+      {/* ---- LOW PRODUCTIVITY ALERT ---- */}
+      {user.role === "employee" &&
+        productivity &&
+        productivity.score < 50 && (
+          <div className="card">
+            <b style={{ color: "red" }}>⚠ Low Productivity Alert</b>
+            <p>
+              Your task completion rate is below expected levels.
+              Please prioritize pending tasks.
+            </p>
+          </div>
+        )}
 
       {/* ---- PROJECTS (MANAGER) ---- */}
       {user.role === "manager" &&
